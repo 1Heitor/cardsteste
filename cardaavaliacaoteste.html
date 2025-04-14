@@ -521,12 +521,24 @@
           const threshold = (cardWidth + cardGap) / 4;
           
           if (Math.abs(dragDistance) > threshold) {
-            if (dragDistance < 0 && currentGroup < groupCount - 1) {
-              nextGroup();
-            } else if (dragDistance > 0 && currentGroup > 0) {
-              prevGroup();
+            if (dragDistance < 0) {
+              // Deslizando para a esquerda (próximo)
+              if (currentGroup < groupCount - 1) {
+                nextGroup();
+              } else {
+                // Se estiver no último grupo, vá para o primeiro
+                currentGroup = 0;
+                updateSlidePosition();
+              }
             } else {
-              updateSlidePosition();
+              // Deslizando para a direita (anterior)
+              if (currentGroup > 0) {
+                prevGroup();
+              } else {
+                // Se estiver no primeiro grupo, vá para o último
+                currentGroup = groupCount - 1;
+                updateSlidePosition();
+              }
             }
           } else {
             updateSlidePosition();
