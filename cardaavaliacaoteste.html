@@ -32,7 +32,6 @@
       text-align: center;
       padding: 0 20px;
       position: relative;
-
     }
 
     .testimonials-container h2 {
@@ -239,9 +238,9 @@
       }
       
       .testimonial-card {
-        flex: 0 0 calc(100% - 40px);
-        min-width: calc(100% - 40px);
-        width: calc(100% - 40px);
+        flex: 0 0 100%;
+        min-width: 100%;
+        width: 100%;
         margin: 0 auto;
       }
       
@@ -266,6 +265,12 @@
       
       .testimonials-slides {
         transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%;
+      }
+      
+      .testimonial-card {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid #f0f0f0;
       }
     }
 
@@ -401,7 +406,6 @@
       let isDragging = false, startX = 0, dragDistance = 0;
       let visibleCount = 4; // valor padrão para desktop
       let groupCount = 0;
-      let isMobile = window.innerWidth <= 768;
 
       // Função para calcular quantos cards estão visíveis de acordo com a viewport
       function calculateVisibleCount() {
@@ -413,14 +417,11 @@
         } else {
           visibleCount = 1;
         }
-        isMobile = w <= 768;
-        console.log(`Largura da tela: ${w}px, Cards visíveis: ${visibleCount}, Mobile: ${isMobile}`);
       }
 
       // Calcular o total de grupos (cada grupo representa os cards visíveis de uma vez)
       function calculateGroupCount() {
         groupCount = Math.ceil(cards.length / visibleCount);
-        console.log(`Total de cards: ${cards.length}, Grupos: ${groupCount}`);
       }
 
       // Atualizar os dots (bolinhas) de navegação de acordo com os grupos
@@ -451,10 +452,15 @@
         const cardGap = 20; // Este é o valor do gap entre os cards definido no CSS
         
         // Calcula a posição correta para cada card
-        if (isMobile) {
+        if (visibleCount === 1) {
           // Quando estiver em visualização móvel, posicionamos cada card individualmente
           const position = -currentGroup * (cardWidth + cardGap);
           slides.style.transform = `translateX(${position}px)`;
+          
+          // Ajuste para garantir que o card ocupe toda a largura disponível
+          cards.forEach(card => {
+            card.style.width = `${carouselWidth - cardGap}px`;
+          });
         } else {
           // Para desktop/tablet, mantenha o comportamento original
           slides.style.transform = `translateX(-${currentGroup * carouselWidth}px)`;
@@ -464,17 +470,13 @@
       }
 
       function nextGroup() {
-        if (currentGroup < groupCount - 1) {
-          currentGroup++;
-          updateSlidePosition();
-        }
+        currentGroup = (currentGroup + 1) % groupCount;
+        updateSlidePosition();
       }
 
       function prevGroup() {
-        if (currentGroup > 0) {
-          currentGroup--;
-          updateSlidePosition();
-        }
+        currentGroup = (currentGroup - 1 + groupCount) % groupCount;
+        updateSlidePosition();
       }
 
       // Eventos de clique para os botões
@@ -508,10 +510,10 @@
 
       function finishDrag() {
         if (!isDragging) return;
-        slides.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        slides.style.transition = 'transform 0.5s ease';
         isDragging = false;
         
-        if (isMobile) {
+        if (visibleCount === 1) {
           const cardWidth = cards[0].offsetWidth;
           const cardGap = 20;
           const threshold = (cardWidth + cardGap) / 4;
@@ -531,12 +533,10 @@
           const carouselWidth = carousel.offsetWidth;
           
           if (Math.abs(dragDistance) > carouselWidth / 4) {
-            if (dragDistance < 0 && currentGroup < groupCount - 1) {
+            if (dragDistance < 0) {
               nextGroup();
-            } else if (dragDistance > 0 && currentGroup > 0) {
-              prevGroup();
             } else {
-              updateSlidePosition();
+              prevGroup();
             }
           } else {
             updateSlidePosition();
@@ -558,7 +558,7 @@
         dragDistance = distance;
         
         // Ajustes para visualização móvel
-        if (isMobile) {
+        if (visibleCount === 1) {
           const cardWidth = cards[0].offsetWidth;
           const cardGap = 20;
           const currentTransform = -currentGroup * (cardWidth + cardGap) + distance;
@@ -580,7 +580,7 @@
         calculateGroupCount();
         
         // Ajustar o tamanho dos cards para visualização móvel
-        if (isMobile) {
+        if (visibleCount === 1) {
           const cardGap = 20;
           const carouselWidth = carousel.offsetWidth;
           cards.forEach(card => {
