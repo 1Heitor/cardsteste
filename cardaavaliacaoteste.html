@@ -406,6 +406,7 @@
       let isDragging = false, startX = 0, dragDistance = 0;
       let visibleCount = 4; // valor padrão para desktop
       let groupCount = 0;
+      let isMobile = window.innerWidth <= 768;
 
       // Função para calcular quantos cards estão visíveis de acordo com a viewport
       function calculateVisibleCount() {
@@ -417,6 +418,7 @@
         } else {
           visibleCount = 1;
         }
+        isMobile = w <= 768;
       }
 
       // Calcular o total de grupos (cada grupo representa os cards visíveis de uma vez)
@@ -571,6 +573,36 @@
       });
 
       slides.addEventListener('touchend', () => {
+        finishDrag();
+      });
+
+      // Adicionar eventos de toque diretamente ao carrossel para garantir que funcione desde o início
+      carousel.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        dragDistance = 0;
+        slides.style.transition = 'none';
+      });
+
+      carousel.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const distance = e.touches[0].clientX - startX;
+        dragDistance = distance;
+        
+        // Ajustes para visualização móvel
+        if (visibleCount === 1) {
+          const cardWidth = cards[0].offsetWidth;
+          const cardGap = 20;
+          const currentTransform = -currentGroup * (cardWidth + cardGap) + distance;
+          slides.style.transform = `translateX(${currentTransform}px)`;
+        } else {
+          const carouselWidth = carousel.offsetWidth;
+          const currentTransform = -currentGroup * carouselWidth + distance;
+          slides.style.transform = `translateX(${currentTransform}px)`;
+        }
+      });
+
+      carousel.addEventListener('touchend', () => {
         finishDrag();
       });
 
